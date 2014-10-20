@@ -1,22 +1,52 @@
-#from thinkbayes2 import Suite, EvalNormalPdf
-import pygame, time, boat, controller, gameobj, component
+from thinkbayes2 import Suite, EvalNormalPdf
+import pygame, time, boat, gameobj, component, util, config
 
-SCALE_FACTOR = 30
+# TODO:
+# * make ping_field again (old code: ping_field = PingField("ping", S_CENTER, dial_radius))
+# * make input work
+# * make GUI overlay for sonar or specialize bounds for ping_field
+# * enable firing for boats
+
+
+def centeredPos(img, pos):
+    offset = util.vectorMul(img.get_size(), .5)
+    return util.vectorSub(pos, offset)
+
+
+def render(alpha, model, screen, center):
+    screen.fill((150, 150, 150))
+    bounds = util.vectorMul(SCREEN.get_size(), 1/config.SCALE_FACTOR)
+    midpoint = util.vectorMul(screen.get_size(), .5)
+
+    for item in model:
+        renderer = item.componentType(component.Renderable)
+        if renderer:
+            data = renderer.render(bounds, alpha)
+            if data:
+                # Reorient view to center around given center point
+                data = (data[0], util.vectorSub(data[1], center))
+
+                # Transform from model to screen space
+                data = (data[0], util.vectorMul(data[1], config.SCALE_FACTOR))
+
+                # Center blit around coordinate
+                data = (data[0], centeredPos(*data))
+
+                # Reorient (0, 0) to lie in the middle of the screen
+                data = (data[0], util.vectorAdd(midpoint, data[1]))
+
+                screen.blit(*data)
+    pygame.display.flip()
 
 
 if __name__ == "__main__":
-    cont = controller.Input()
+    SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
     player_boat = boat.newBoat("player")
     sonar_dial = gameobj.GameObj("Sonar", player_boat.pos())
     component.Renderable(sonar_dial, "sonar_base")
     component.FollowScript(sonar_dial, player_boat)
     model = [sonar_dial, player_boat, boat.newBoat("opponent", AI=True)]
-
-
-    #TODO
-    #sonar_dial = Sonar("sonar_base", S_CENTER)
-    #dial_radius = sonar_dial.getRadius()
-    #ping_field = PingField("ping", S_CENTER, dial_radius)
 
     # Generic Gameloop
     t = 0.0
@@ -26,10 +56,6 @@ if __name__ == "__main__":
     accumulator = 0.0
 
     while True:
-        SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        S_WIDTH, S_HEIGHT = SCREEN.get_size()
-        S_CENTER = (S_WIDTH/2, S_HEIGHT/2)
-
         # Update clock
         new_time = time.clock()
         frame_time = new_time - current_time
@@ -41,7 +67,6 @@ if __name__ == "__main__":
         accumulator += frame_time
 
         # Handle input
-        #cont.update()
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -60,4 +85,4 @@ if __name__ == "__main__":
 
         alpha = accumulator / dt
 
-        view.render(alpha)
+        render(alpha, model, SCREEN, player_boat.pos())

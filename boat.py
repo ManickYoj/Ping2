@@ -23,7 +23,7 @@ class AIBoatScript(BoatScript):
 
     def update(self, dt):
         # Update Physics based on random quantities
-        self._phys.speed(self._phys.speed() + self.dir * self._max_accel * dt)
+        self._phys.speed(self._phys.speed() + self._dir * self._max_accel * dt)
         self._parent.rotation(self._parent.rotation() + (random.random() - .5) * 2 * self._turn_speed * dt)
 
 
@@ -41,9 +41,6 @@ class PlayerBoatScript(BoatScript):
 
         self._phys.speed(self._phys.speed() + axes[1] * self._max_accel * dt)
         self._parent.rotation(self._parent.rotation() + axes[0] * self._turn_speed * dt)
-
-        # Update camera position
-        Camera.main().pos
 
 
 def newBoat(name, AI=False):

@@ -35,6 +35,11 @@ class GameObj:
             if str(type_name).lower() == type(cmpt).__name__.lower():
                 return cmpt
 
+    def componentType(self, type):
+        for cmpt in self._components:
+            if isinstance(cmpt, type):
+                return cmpt
+
     def update(self, dt):
         for cmpt in self._components:
             cmpt.update(dt)

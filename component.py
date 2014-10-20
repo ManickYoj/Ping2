@@ -6,7 +6,7 @@ The core component set for adding functionality to GameObjs.
 """
 
 from util import *
-import pygame, registry
+import pygame
 
 
 class Component:
@@ -32,19 +32,13 @@ class Component:
 
 
 class Renderable(Component):
-    _Registry = registry.RenderRegistry()
-
-    @staticmethod
-    def renderObjects(bounds, dt, screen):
-        Renderable._Registry(bounds, dt, screen)
 
     def __init__(self, parent, image_path, depth=0):
         super(Renderable, self).__init__(parent)
         self.image = pygame.image.load("{}.png".format(image_path))
-        Renderable._Registry.add(self, depth)
 
     def rotatedImage(self):
-        angle = self._parent.rotatation()
+        angle = self._parent.rotation()
         return pygame.transform.rotate(self.image, angle)
 
     def curPos(self, dt):
@@ -55,13 +49,14 @@ class Renderable(Component):
         return vectorSub(self.curPos(dt), offset)
 
     def render(self, bounds, dt):
-        if inBounds(self.curPos, bounds):
-            return (self.rotatedImage(), centeredPos(dt))
+        pos = self.curPos(dt)
+        if inBounds(pos, bounds):
+            return (self.rotatedImage(), pos)
 
 
 class Physics(Component):
 
-    def __init__(self, parent, speed=0, bounds=None):
+    def __init__(self, parent, speed, bounds):
         super(Physics, self).__init__(parent)
         self._speed = speed
         self._bounds = bounds
@@ -73,7 +68,7 @@ class Physics(Component):
             self._speed = new_value
 
     def calcVel(self):
-        direction = math.radians(self._parent.rotatation() + 90)
+        direction = math.radians(self._parent.rotation() + 90)
         return self._speed * math.cos(direction), self._speed * math.sin(direction)
 
     def lateUpdate(self, dt):
@@ -88,10 +83,10 @@ class PhysicsRenderable(Renderable):
         return [Physics]
 
     def awake(self):
-        self._phys = self._parent.component(Physics)
+        self._phys = self._parent.component("Physics")
 
     def curPos(self, dt):
-        return vectorAdd(self.pos, vectorMul(self._phys.vel(), dt))
+        return vectorAdd(self._parent.pos(), vectorMul(self._phys.calcVel(), dt))
 
 
 class FollowScript(Component):

@@ -35,12 +35,12 @@ def vectorMul(vec, scalar):
 
 
 def inBounds(value, bounds, min_bound=0):
-    if not isinstance(bounds, list) and not isinstance(value, list):
+    if isinstance(bounds, float) and isinstance(value, float):
         return value < bounds and min_bound < value
     elif not len(value) == len(bounds):
         raise ValueError("Tried to compare values and bounds of unequal lengths.")
     else:
-        return bool([x for x in range(len(value)) if value[x] > bounds[x]] and min_bound < value[x])
+        return bool([x for x in range(len(value)) if value[x] < bounds[x] and min_bound < value[x]])
 
 
 def calcVel(speed, heading):
