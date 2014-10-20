@@ -1,16 +1,6 @@
 import gameobj, component, pygame, config
 
 
-class CamScript(component.Component):
-
-    def __init__(self, parent, followed_obj):
-        super(CamScript, self).__init__(parent)
-        self._followed = followed_obj
-
-    def update(self, dt):
-        self._parent.pos(self._followed.pos())
-
-
 class Camera(gameobj.GameObj):
     _MAIN = None
     _SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)

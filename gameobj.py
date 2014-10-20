@@ -35,13 +35,13 @@ class GameObj:
             if str(type_name).lower() == type(cmpt).__name__.lower():
                 return cmpt
 
-    def update(self):
+    def update(self, dt):
         for cmpt in self._components:
-            cmpt.update()
+            cmpt.update(dt)
 
-    def lateUpdate(self):
+    def lateUpdate(self, dt):
         for cmpt in self._components:
-            cmpt.lateUpdate()
+            cmpt.lateUpdate(dt)
 
     def name(self):
         return self._name

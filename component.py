@@ -92,3 +92,13 @@ class PhysicsRenderable(Renderable):
 
     def curPos(self, dt):
         return vectorAdd(self.pos, vectorMul(self._phys.vel(), dt))
+
+
+class FollowScript(Component):
+
+    def __init__(self, parent, target):
+        super(FollowScript, self).__init__(parent)
+        self._target = target
+
+    def update(self, dt):
+        self._parent.pos(self._target.pos())

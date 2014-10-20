@@ -1,7 +1,7 @@
 from gameobj import *
 from component import *
 from util import *
-import config, random
+import config, random, pygame
 
 
 class BoatScript(Component):
@@ -13,7 +13,7 @@ class BoatScript(Component):
         self._max_accel = .2        # Nodes/sec^2
         self._turn_speed = 60.0     # Degrees/sec
         self._dir = 1
-        self._phys = self._parent.component(Physics)
+        self._phys = self._parent.component("Physics")
 
     def getDependencies(self):
         return [Physics]
@@ -31,7 +31,14 @@ class PlayerBoatScript(BoatScript):
 
     def update(self, dt):
         # Update Physics based on input
-        axes = Input.getAxes()
+        pressed = pygame.key.get_pressed()
+        axes = [0, 0]
+
+        if pygame.K_d in pressed: axes[0] += 1
+        if pygame.K_a in pressed: axes[0] -= 1
+        if pygame.K_w in pressed: axes[1] += 1
+        if pygame.K_s in pressed: axes[1] -= 1
+
         self._phys.speed(self._phys.speed() + axes[1] * self._max_accel * dt)
         self._parent.rotation(self._parent.rotation() + axes[0] * self._turn_speed * dt)
 
@@ -61,5 +68,8 @@ def newBoat(name, AI=False):
     return boat
 
 if __name__ == "__main__":
-    print(newBoat("Player", False))
-    print(newBoat("Opponent", True))
+    player_boat = newBoat("Player", False)
+    opp_boat = newBoat("Opponent", True)
+
+    print(player_boat)
+    print(opp_boat)

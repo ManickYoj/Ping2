@@ -33,7 +33,7 @@ class Input:
 
     @staticmethod
     def getAxes(self):
-        pressed = pygame.get_pressed()
+        pressed = pygame.key.get_pressed()
         axes = [0, 0]
 
         for item in Input._AXES_MAP["h+"]:
