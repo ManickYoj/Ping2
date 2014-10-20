@@ -40,9 +40,12 @@ def inBounds(value, bounds, min_bound=0):
     elif not len(value) == len(bounds):
         raise ValueError("Tried to compare values and bounds of unequal lengths.")
     else:
-        return bool([x for x in range(len(value)) if value[x] < bounds[x] and min_bound < value[x]])
+        res = [x for x in range(len(value)) if value[x] < bounds[x] and min_bound < value[x]]
+        return len(res) == len(value)
 
 
 def calcVel(speed, heading):
     heading = math.radians(heading+90)
-    return speed * math.cos(heading), speed * math.sin(heading)
+    vel = speed * math.cos(heading), speed * math.sin(heading)
+
+    return vel

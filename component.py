@@ -35,23 +35,23 @@ class Renderable(Component):
 
     def __init__(self, parent, image_path, depth=0):
         super(Renderable, self).__init__(parent)
-        self.image = pygame.image.load("{}.png".format(image_path))
+        self._image = pygame.image.load("{}.png".format(image_path))
 
     def rotatedImage(self):
-        angle = self._parent.rotation()
-        return pygame.transform.rotate(self.image, angle)
+        angle = -self._parent.rotation()
+        return pygame.transform.rotate(self._image, angle)
 
     def curPos(self, dt):
         return self._parent.pos()
 
     def centeredPos(self, dt):
-        offset = vectorMul(self.image.get_size(), .5)
+        offset = vectorMul(self._image.get_size(), .5)
         return vectorSub(self.curPos(dt), offset)
 
     def render(self, bounds, dt):
         pos = self.curPos(dt)
-        if inBounds(pos, bounds):
-            return (self.rotatedImage(), pos)
+        # #if inBounds(pos, bounds):
+        return [(self.rotatedImage(), pos)]
 
 
 class Physics(Component):
@@ -60,6 +60,10 @@ class Physics(Component):
         super(Physics, self).__init__(parent)
         self._speed = speed
         self._bounds = bounds
+        self._observers = []
+
+    def registerObserver(self, obs):
+        self._observers.append(obs)
 
     def speed(self, new_value=None):
         if new_value is None:
@@ -68,13 +72,17 @@ class Physics(Component):
             self._speed = new_value
 
     def calcVel(self):
-        direction = math.radians(self._parent.rotation() + 90)
-        return self._speed * math.cos(direction), self._speed * math.sin(direction)
+        direction = math.radians(self._parent.rotation()+90)
+        vel = self._speed * math.cos(direction), self._speed * math.sin(direction)
+        return vel
 
     def lateUpdate(self, dt):
-        new_pos = vectorAdd(self._parent.pos(), self.calcVel())
+        d_pos = vectorMul(self.calcVel(), dt)
+        new_pos = vectorAdd(self._parent.pos(), d_pos)
         if inBounds(new_pos, self._bounds):
             self._parent.pos(new_pos)
+            for obs in self._observers:
+                obs.notify(new_pos)
 
 
 class PhysicsRenderable(Renderable):
@@ -85,15 +93,15 @@ class PhysicsRenderable(Renderable):
     def awake(self):
         self._phys = self._parent.component("Physics")
 
-    def curPos(self, dt):
-        return vectorAdd(self._parent.pos(), vectorMul(self._phys.calcVel(), dt))
+    #def curPos(self, dt):
+    #    return vectorAdd(self._parent.pos(), vectorMul(self._phys.calcVel(), dt))
 
 
 class FollowScript(Component):
 
     def __init__(self, parent, target):
         super(FollowScript, self).__init__(parent)
-        self._target = target
+        target.componentType(Physics).registerObserver(self)
 
-    def update(self, dt):
-        self._parent.pos(self._target.pos())
+    def notify(self, new_pos):
+        self._parent.pos(new_pos)

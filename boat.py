@@ -9,8 +9,8 @@ class BoatScript(Component):
     def __init__(self, parent):
         super(BoatScript, self).__init__(parent)
         self._fire_radius = 15.0    # Nodes
-        self._max_speed = 1         # Nodes/sec
-        self._max_accel = .2        # Nodes/sec^2
+        self._max_speed = 3         # Nodes/sec
+        self._max_accel = .5        # Nodes/sec^2
         self._turn_speed = 60.0     # Degrees/sec
         self._dir = 1
         self._phys = self._parent.component("Physics")
@@ -34,13 +34,16 @@ class PlayerBoatScript(BoatScript):
         pressed = pygame.key.get_pressed()
         axes = [0, 0]
 
-        if pygame.K_d in pressed: axes[0] += 1
-        if pygame.K_a in pressed: axes[0] -= 1
-        if pygame.K_w in pressed: axes[1] += 1
-        if pygame.K_s in pressed: axes[1] -= 1
+        if pressed[pygame.K_d]: axes[0] += 1
+        if pressed[pygame.K_a]: axes[0] -= 1
+        if pressed[pygame.K_w]: axes[1] -= 1
+        if pressed[pygame.K_s]: axes[1] += 1
 
         self._phys.speed(self._phys.speed() + axes[1] * self._max_accel * dt)
         self._parent.rotation(self._parent.rotation() + axes[0] * self._turn_speed * dt)
+
+        if self._phys.speed() > self._max_speed:
+            self._phys.speed(self._max_speed)
 
 
 def newBoat(name, AI=False):
