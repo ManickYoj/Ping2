@@ -1,9 +1,9 @@
 import pygame, time, boat, gameobj, component, util, config, pingfield
 
+
 def centeredPos(img, pos):
     offset = util.vectorMul(img.get_size(), .5)
     return util.vectorSub(pos, offset)
-
 
 
 def render(alpha, model, screen, center):

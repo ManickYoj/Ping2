@@ -30,10 +30,11 @@ class PingFieldScript(Renderable):
             scaling = SCALE_FACTOR/(2*max_prob)
 
             for loc, prob in items:
-                size = (int(prob*scaling), int(prob*scaling))
+                if int(prob*scaling) > 1:
+                    size = (int(prob*scaling), int(prob*scaling))
+                else:
+                    size = (2, 2)
                 img = pygame.transform.smoothscale(self._image, size)
-                if not img:
-                    img = pygame.transform.smoothscale(self._image, 2)
                 self._render_list.append((img, loc))
 
         return_list = []

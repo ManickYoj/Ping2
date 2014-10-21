@@ -25,7 +25,7 @@ class BoatScript(Component):
         if self._cooldown_timer <= 0:
             self._cooldown_timer = self._fire_cooldown
             dist_mean = distance(shot_loc, target.pos())
-            error = dist_mean/12 + .5
+            error = dist_mean/8 + .5
             data = (shot_loc, random.gauss(dist_mean, error), error)
             self._ping_model.Update(data)
 
