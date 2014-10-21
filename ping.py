@@ -1,12 +1,9 @@
 import pygame, time, boat, gameobj, component, util, config, pingfield
 
-# TODO:
-# * Reenable firing for boats
-
-
 def centeredPos(img, pos):
     offset = util.vectorMul(img.get_size(), .5)
     return util.vectorSub(pos, offset)
+
 
 
 def render(alpha, model, screen, center):
@@ -36,22 +33,28 @@ def render(alpha, model, screen, center):
 
 if __name__ == "__main__":
     SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    SCREEN.fill((50, 50, 50))
+    S_CENTER = util.vectorMul(SCREEN.get_size(), .5)
+    SCREEN.fill((100, 100, 100))
 
-    player_boat = boat.newBoat("player")
+    ping_field = pingfield.newPingField("sonar_base")
+    ping_model = ping_field.componentType(pingfield.PingFieldScript)._bayesian
+    player_boat = boat.newBoat("player", ping_model=ping_model)
+
+    opponent = boat.newBoat("opponent")
+    #component.PhysicsRenderable(opponent, "boat_icon")
+
     sonar_dial = gameobj.GameObj("sonar", player_boat.pos())
     component.Renderable(sonar_dial, "sonar_base")
     component.FollowScript(sonar_dial, player_boat)
+
     model = [sonar_dial,
              player_boat,
-             boat.newBoat("opponent", AI=True),
-             pingfield.newPingField("sonar_base")]
+             opponent,
+             ping_field]
 
     # Generic Gameloop
     t = 0.0
     dt = 0.01
-
-    accumulated_time = 0
     samples = 0
 
     current_time = time.clock()
@@ -72,8 +75,12 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    print(avg_frame_time)
+                    print("Average FPS: " + str(samples/t))
                     exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = util.vectorAdd(util.scrToModel(event.pos, S_CENTER), player_boat.pos())
+                player_boat.componentType(boat.BoatScript).fire(pos, opponent)
 
         # Update Model
         while accumulator >= dt:
@@ -90,5 +97,3 @@ if __name__ == "__main__":
         render(alpha, model, SCREEN, player_boat.pos())
 
         samples += 1
-        accumulated_time += frame_time
-        avg_frame_time = accumulated_time/samples

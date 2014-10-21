@@ -5,7 +5,7 @@ Includes utility functions for working with
 vectors.
 """
 
-import math
+import math, config
 
 
 def distance(point1, point2):
@@ -49,3 +49,11 @@ def calcVel(speed, heading):
     vel = speed * math.cos(heading), speed * math.sin(heading)
 
     return vel
+
+
+def scrToModel(point, scr_center):
+    return vectorMul(vectorSub(point, scr_center), 1/config.SCALE_FACTOR)
+
+
+def modelToScr(point, scr_center):
+    return vectorAdd(vectorMul(point, config.SCALE_FACTOR), scr_center)

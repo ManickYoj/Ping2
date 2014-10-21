@@ -18,16 +18,13 @@ class PingFieldScript(Renderable):
     def __init__(self, parent, image_path, grid_size, rad):
         super(PingFieldScript, self).__init__(parent, image_path)
         self._bayesian = Predictions(grid_size)
-        self._model_changed = True
         self._render_radius = rad
 
-    def updateModel(self, data):
-        self._model_changed = True
-        self._bayesian.Update(data)
+    # def updateModel(self, data):
+    #     self._bayesian.Update(data)
 
     def render(self, bounds, dt):
-        if self._model_changed:
-            self._model_changed = False
+        if self._bayesian.changed():
             self._render_list = []
             max_prob, items = self._bayesian.getProbData()
             scaling = SCALE_FACTOR/(2*max_prob)
@@ -35,8 +32,9 @@ class PingFieldScript(Renderable):
             for loc, prob in items:
                 size = (int(prob*scaling), int(prob*scaling))
                 img = pygame.transform.smoothscale(self._image, size)
-                if img:
-                    self._render_list.append((img, loc))
+                if not img:
+                    img = pygame.transform.smoothscale(self._image, 2)
+                self._render_list.append((img, loc))
 
         return_list = []
         for item in self._render_list:
@@ -51,6 +49,11 @@ class Predictions(Suite):
     def __init__(self, size):
         hypos = [(x, y) for x in range(size[0]) for y in range(size[1])]
         super(Predictions, self).__init__(hypos)
+        self._changed = True
+
+    def Update(self, data):
+        self._changed = True
+        super(Predictions, self).Update(data)
 
     def Likelihood(self, data, hypo):
         # Unpack Variables
@@ -58,23 +61,28 @@ class Predictions(Suite):
         shot_location, mean_distance, error = data
 
         # Calculate Distance from Hypo Point
-        d = distance(shot_location, ship_location)
+        d = util.distance(shot_location, ship_location)
 
         # Evaluate Normal Distribution near Ship
-        return EvalNormalPdf(d, mean_distance, error) + .003
+        return EvalNormalPdf(d, mean_distance, error) + 0.05
 
     def getProbData(self):
+        self._changed = False
         max_prob = self.Prob(self.MaximumLikelihood())
         return max_prob, self.Items()
+
+    def changed(self):
+        return self._changed
 
     def __str__(self):
         return str(self.getProbData())
 
 
 if __name__ == "__main__":
-    pf = newPingField()
-
+    pf = newPingField("sonar_base")
+    print(pf.component("PingFieldScript")._bayesian.MaximumLikelihood())
     data1 = ((10, 10), 5, 1)
-    pf.component("PingFieldScript").updateModel(data1)
+    #pf.component("PingFieldScript").updateModel(data1)
 
-    print(pf.component("PingFieldScript")._bayesian)
+    #print(pf.component("PingFieldScript")._bayesian)
+    print(pf.component("PingFieldScript")._bayesian.MaximumLikelihood())
