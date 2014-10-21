@@ -9,7 +9,7 @@ class BoatScript(Component):
     def __init__(self, parent):
         super(BoatScript, self).__init__(parent)
         self._fire_radius = 15.0    # Nodes
-        self._max_speed = 3         # Nodes/sec
+        self._max_speed = 2         # Nodes/sec
         self._max_accel = .5        # Nodes/sec^2
         self._turn_speed = 60.0     # Degrees/sec
         self._dir = 1

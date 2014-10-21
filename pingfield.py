@@ -2,20 +2,24 @@ from gameobj import *
 from component import *
 from config import *
 from thinkbayes2 import Suite, EvalNormalPdf
+import pygame, util
 
 
-def newPingField():
+def newPingField(sonar_img_path):
+    r = min(pygame.image.load(sonar_img_path + ".png").get_size())
+    sonar_radius = r/(SCALE_FACTOR*2) - 1
     ping_field = GameObj("ping_field")
-    PingFieldScript(ping_field, "ping", OCEAN_SIZE)
+    PingFieldScript(ping_field, "ping", OCEAN_SIZE, sonar_radius)
     return ping_field
 
 
 class PingFieldScript(Renderable):
 
-    def __init__(self, parent, image_path, grid_size):
+    def __init__(self, parent, image_path, grid_size, rad):
         super(PingFieldScript, self).__init__(parent, image_path)
         self._bayesian = Predictions(grid_size)
         self._model_changed = True
+        self._render_radius = rad
 
     def updateModel(self, data):
         self._model_changed = True
@@ -34,7 +38,12 @@ class PingFieldScript(Renderable):
                 if img:
                     self._render_list.append((img, loc))
 
-        return self._render_list
+        return_list = []
+        for item in self._render_list:
+            if util.distance(item[1], bounds) < self._render_radius:
+                return_list.append(item)
+
+        return return_list
 
 
 class Predictions(Suite):

@@ -1,9 +1,7 @@
 import pygame, time, boat, gameobj, component, util, config, pingfield
 
 # TODO:
-# * make ping_field again (old code: ping_field = PingField("ping", S_CENTER, dial_radius))
-# * make GUI overlay for sonar or specialize bounds for ping_field
-# * enable firing for boats
+# * Reenable firing for boats
 
 
 def centeredPos(img, pos):
@@ -12,10 +10,8 @@ def centeredPos(img, pos):
 
 
 def render(alpha, model, screen, center):
-    bounds = util.vectorMul(SCREEN.get_size(), 1/config.SCALE_FACTOR)
+    bounds = center
     midpoint = util.vectorMul(screen.get_size(), .5)
-
-    screen.fill((150, 150, 150))
 
     for item in model:
         renderer = item.componentType(component.Renderable)
@@ -40,6 +36,7 @@ def render(alpha, model, screen, center):
 
 if __name__ == "__main__":
     SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    SCREEN.fill((50, 50, 50))
 
     player_boat = boat.newBoat("player")
     sonar_dial = gameobj.GameObj("sonar", player_boat.pos())
@@ -48,11 +45,14 @@ if __name__ == "__main__":
     model = [sonar_dial,
              player_boat,
              boat.newBoat("opponent", AI=True),
-             pingfield.newPingField()]
+             pingfield.newPingField("sonar_base")]
 
     # Generic Gameloop
     t = 0.0
     dt = 0.01
+
+    accumulated_time = 0
+    samples = 0
 
     current_time = time.clock()
     accumulator = 0.0
@@ -72,19 +72,23 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    print(avg_frame_time)
                     exit()
 
         # Update Model
         while accumulator >= dt:
-            for gameobj in model:
-                gameobj.update(dt)
+            for obj in model:
+                obj.update(dt)
 
-            for gameobj in model:
-                gameobj.lateUpdate(dt)
+            for obj in model:
+                obj.lateUpdate(dt)
 
             t += dt
             accumulator -= dt
 
         alpha = accumulator / dt
-
         render(alpha, model, SCREEN, player_boat.pos())
+
+        samples += 1
+        accumulated_time += frame_time
+        avg_frame_time = accumulated_time/samples
